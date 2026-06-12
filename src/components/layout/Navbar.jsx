@@ -2,10 +2,10 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const NAV = [
-  { to: '/',            label: 'Início',       end: true },
-  { to: '/services',    label: 'Serviços' },
-  { to: '/schedulings', label: 'Agendamentos' },
-  { to: '/profile',     label: 'Perfil' },
+  { to: '/dashboard',    label: 'Início',       end: true },
+  { to: '/services',     label: 'Serviços' },
+  { to: '/schedulings',  label: 'Agendamentos' },
+  { to: '/profile',      label: 'Perfil' },
 ];
 
 const Navbar = () => {
