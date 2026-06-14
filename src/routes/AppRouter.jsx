@@ -11,6 +11,7 @@ import Services from '../pages/Services';
 import SchedulingList from '../pages/schedulings/SchedulingList';
 import NewScheduling from '../pages/schedulings/NewScheduling';
 import NotFound from '../pages/NotFound';
+import Register from '../pages/Register';
 
 const AppRouter = () => {
   const { isAuthenticated } = useAuth();
@@ -22,6 +23,7 @@ const AppRouter = () => {
         {/* Rotas públicas */}
         <Route element={<PublicLayout />}>
           <Route path="/welcome" element={<Welcome />} />
+          <Route path="/register" element={<Register />} />
         </Route>
 
         {/* Login */}

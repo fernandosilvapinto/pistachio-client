@@ -1,29 +1,39 @@
 import { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
-import { useNavigate, useLocation } from 'react-router-dom';
 
-const Login = () => {
-  const { login } = useAuth();
+const Register = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const location = useLocation();
-  const registered = location.state?.registered;
-
   const handleSubmit = async () => {
-    if (!email || !password) { setError('Preenche todos os campos.'); return; }
+    if (!form.name || !form.email || !form.password) {
+      setError('Preenche todos os campos.');
+      return;
+    }
+    if (form.password !== form.confirm) {
+      setError('As passwords não coincidem.');
+      return;
+    }
+    if (form.password.length < 6) {
+      setError('A password deve ter pelo menos 6 caracteres.');
+      return;
+    }
+
     setLoading(true); setError('');
     try {
-      const data = await api.post('/auth/login', { email, password });
-      login(data.token, data.user ?? { email });
-    } catch {
-      setError('Credenciais inválidas. Tenta novamente.');
+      await api.post('/auth/register', {
+        name:     form.name,
+        email:    form.email,
+        password: form.password,
+      });
+      navigate('/login', { state: { registered: true } });
+    } catch (e) {
+      setError(e.message ?? 'Erro ao criar conta. Tenta novamente.');
     } finally {
       setLoading(false);
     }
@@ -41,33 +51,40 @@ const Login = () => {
           >
             🔧
           </div>
-          <h1 className="text-xl font-semibold text-gray-900">Bem-vindo de volta</h1>
-          <p className="text-sm text-gray-400 mt-1">Entra na tua conta para gerir os teus agendamentos.</p>
+          <h1 className="text-xl font-semibold text-gray-900">Criar conta</h1>
+          <p className="text-sm text-gray-400 mt-1">Regista-te para começar a agendar.</p>
         </div>
 
         {/* Formulário */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 flex flex-col gap-4">
           <Input
+            label="Nome completo"
+            value={form.name}
+            onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+            placeholder="O teu nome"
+          />
+          <Input
             label="Email"
             type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
+            value={form.email}
+            onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
             placeholder="o-teu-email@exemplo.com"
           />
           <Input
             label="Password"
             type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
+            value={form.password}
+            onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+            placeholder="••••••••"
+          />
+          <Input
+            label="Confirmar password"
+            type="password"
+            value={form.confirm}
+            onChange={e => setForm(f => ({ ...f, confirm: e.target.value }))}
             onKeyDown={e => e.key === 'Enter' && handleSubmit()}
             placeholder="••••••••"
           />
-          {registered && (
-            <p className="text-xs text-green-600 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-              Conta criada com sucesso! Entra com as tuas credenciais.
-            </p>
-          )}
-
           {error && <p className="text-xs text-red-500">{error}</p>}
           <Button
             variant="primary"
@@ -75,18 +92,18 @@ const Login = () => {
             disabled={loading}
             className="w-full justify-center mt-1"
           >
-            {loading ? 'A entrar…' : 'Entrar'}
+            {loading ? 'A criar conta…' : 'Criar conta'}
           </Button>
         </div>
 
-        {/* Link para registo */}
+        {/* Link para login */}
         <p className="text-center text-sm text-gray-400">
-          Ainda não tens conta?{' '}
+          Já tens conta?{' '}
           <button
-            onClick={() => navigate('/register')}
+            onClick={() => navigate('/login')}
             className="text-gray-900 font-medium hover:underline cursor-pointer"
           >
-            Regista-te gratuitamente
+            Entrar
           </button>
         </p>
 
@@ -103,4 +120,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;
