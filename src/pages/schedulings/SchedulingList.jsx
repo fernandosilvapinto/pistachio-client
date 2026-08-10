@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
 import { api } from '../../api/client';
 import { useNavigate } from 'react-router-dom';
-import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
-
-const fmtDate = (d) => d ? new Date(d).toLocaleDateString('pt-PT') : '—';
+import SchedulingCard from '../../components/ui/SchedulingCard';
 
 const SchedulingList = () => {
   const [schedulings, setSchedulings] = useState([]);
@@ -14,7 +12,7 @@ const SchedulingList = () => {
 
   useEffect(() => {
     const load = async () => {
-      const s = await api.get('/schedulings').catch(() => []);
+      const s = await api.get('/schedulings/mine').catch(() => []);
       setSchedulings(Array.isArray(s) ? s : []);
       setLoading(false);
     };
@@ -67,15 +65,7 @@ const SchedulingList = () => {
           : (
             <div className="flex flex-col gap-3">
               {filtered.map((s, i) => (
-                <div key={i} className="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {s.service?.name ?? s.serviceName ?? `Serviço #${s.serviceId}`}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-0.5">{fmtDate(s.scheduledDate)}</p>
-                  </div>
-                  {s.status && <Badge label={s.status} />}
-                </div>
+                <SchedulingCard key={i} scheduling={s} />
               ))}
             </div>
           )

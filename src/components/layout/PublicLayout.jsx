@@ -11,7 +11,10 @@ const PublicLayout = () => {
       {/* Header */}
       <header className="border-b border-gray-100 sticky top-0 bg-white z-10">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={() => navigate('/welcome')}
+          >
             <div className="w-8 h-8 rounded-lg bg-gray-900 flex items-center justify-center text-white text-sm">
               🔧
             </div>

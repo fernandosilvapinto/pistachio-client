@@ -15,13 +15,19 @@ const Login = () => {
 
   const location = useLocation();
   const registered = location.state?.registered;
+  const { serviceId, serviceName } = location.state ?? {};
 
   const handleSubmit = async () => {
     if (!email || !password) { setError('Preenche todos os campos.'); return; }
     setLoading(true); setError('');
     try {
       const data = await api.post('/auth/login', { email, password });
-      login(data.token, data.user ?? { email });
+      login(data.token, { id: data.userId, name: data.name, email: data.email, role: data.role });
+      if (serviceId) {
+        navigate('/schedulings/new', { state: { serviceId, serviceName } });
+      } else {
+        navigate('/dashboard');
+      }
     } catch {
       setError('Credenciais inválidas. Tenta novamente.');
     } finally {
@@ -77,6 +83,12 @@ const Login = () => {
           >
             {loading ? 'A entrar…' : 'Entrar'}
           </Button>
+          <button
+            onClick={() => navigate('/forgot-password')}
+            className="text-center text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
+          >
+            Esqueci-me da password
+          </button>
         </div>
 
         {/* Link para registo */}

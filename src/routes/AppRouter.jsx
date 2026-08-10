@@ -5,13 +5,15 @@ import PublicLayout from '../components/layout/PublicLayout';
 import ClientLayout from '../components/layout/ClientLayout';
 import Welcome from '../pages/Welcome';
 import Login from '../pages/Login';
+import ForgotPassword from '../pages/ForgotPassword';
+import ResetPassword from '../pages/ResetPassword';
 import Dashboard from '../pages/Dashboard';
 import Profile from '../pages/Profile';
-import Services from '../pages/Services';
 import SchedulingList from '../pages/schedulings/SchedulingList';
 import NewScheduling from '../pages/schedulings/NewScheduling';
 import NotFound from '../pages/NotFound';
 import Register from '../pages/Register';
+import Book from '../pages/Book';
 
 const AppRouter = () => {
   const { isAuthenticated } = useAuth();
@@ -24,6 +26,7 @@ const AppRouter = () => {
         <Route element={<PublicLayout />}>
           <Route path="/welcome" element={<Welcome />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/book" element={<Book />} />
         </Route>
 
         {/* Login */}
@@ -31,6 +34,8 @@ const AppRouter = () => {
           path="/login"
           element={isAuthenticated ? <Navigate to="/" replace /> : <Login />}
         />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* Raiz — redireciona conforme estado */}
         <Route
@@ -49,7 +54,6 @@ const AppRouter = () => {
         >
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="profile" element={<Profile />} />
-          <Route path="services" element={<Services />} />
           <Route path="schedulings" element={<SchedulingList />} />
           <Route path="schedulings/new" element={<NewScheduling />} />
         </Route>

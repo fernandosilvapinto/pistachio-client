@@ -90,7 +90,7 @@ const Welcome = () => {
                     <Button
                       size="sm"
                       variant="primary"
-                      onClick={() => navigate('/register')}
+                      onClick={() => navigate('/book', { state: { serviceId: s.id, serviceName: s.name } })}
                     >
                       Agendar
                     </Button>
