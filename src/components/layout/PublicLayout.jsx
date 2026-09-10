@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
+import branding from '../../config/branding';
 
 const PublicLayout = () => {
   const navigate = useNavigate();
@@ -16,9 +17,9 @@ const PublicLayout = () => {
             onClick={() => navigate('/welcome')}
           >
             <div className="w-8 h-8 rounded-lg bg-gray-900 flex items-center justify-center text-white text-sm">
-              🔧
+              {branding.icon}
             </div>
-            <span className="text-sm font-semibold text-gray-900">Pistachio Moto</span>
+            <span className="text-sm font-semibold text-gray-900">{branding.name}</span>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="ghost" onClick={() => navigate('/login')}>
@@ -38,11 +39,13 @@ const PublicLayout = () => {
         <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded bg-gray-900 flex items-center justify-center text-white text-xs">
-              🔧
+              {branding.icon}
             </div>
-            <span className="text-sm font-medium text-gray-700">Pistachio Moto</span>
+            <span className="text-sm font-medium text-gray-700">{branding.name}</span>
           </div>
-          <p className="text-xs text-gray-400">© 2026 Pistachio Moto. Todos os direitos reservados.</p>
+          <p className="text-xs text-gray-400">
+            © {new Date().getFullYear()} {branding.name}. Todos os direitos reservados.
+          </p>
         </div>
       </footer>
 
