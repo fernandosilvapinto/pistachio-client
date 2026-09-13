@@ -1,79 +1,56 @@
-import { useState, useEffect } from 'react';
-import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
-import Input from '../components/ui/Input';
+import { accountConsoleUrl } from '../auth/userManager';
 import Button from '../components/ui/Button';
 
+const Field = ({ label, value }) => (
+  <div className="flex flex-col gap-1">
+    <span className="text-xs font-medium text-gray-400">{label}</span>
+    <span className="text-sm text-gray-900">{value || '—'}</span>
+  </div>
+);
+
+/**
+ * Vista apenas de leitura.
+ *
+ * Nome, email e password são dados de identidade e pertencem ao provider. Se
+ * esta aplicação os pudesse alterar, passaria a haver duas versões da mesma
+ * pessoa e uma delas estaria sempre errada — e, pior, esta aplicação voltaria a
+ * ter uma caixa de password, que é precisamente o que deixou de ter.
+ */
 const Profile = () => {
-  const { user, login, token } = useAuth();
-  const { showToast } = useToast();
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const { user, profile } = useAuth();
 
-  useEffect(() => {
-    const load = async () => {
-      const me = await api.get('/users/me').catch(() => null);
-      if (me) {
-        setForm({ name: me.name ?? '', email: me.email ?? '', password: '' });
-      }
-      setLoading(false);
-    };
-    load();
-  }, []);
-
-  const handleSave = async () => {
-    if (!form.name) { showToast('O nome é obrigatório.', 'error'); return; }
-    setSaving(true);
-    try {
-      const payload = { name: form.name, email: form.email };
-      if (form.password) payload.password = form.password;
-      await api.put(`/users/${user?.id}`, payload);
-      login(token, { ...user, name: form.name, email: form.email });
-      showToast('Perfil atualizado com sucesso.');
-      setForm(f => ({ ...f, password: '' }));
-    } catch (e) {
-      showToast(e.message ?? 'Erro ao atualizar perfil.', 'error');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  if (loading) return <p className="text-sm text-gray-400">A carregar…</p>;
+  const name = user?.name || profile?.name || '';
+  const email = user?.email || profile?.email || '';
 
   return (
     <div className="flex flex-col gap-6 max-w-md">
 
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">O meu perfil</h1>
-        <p className="text-sm text-gray-400 mt-1">Gere os teus dados pessoais.</p>
+        <h1 className="text-2xl font-semibold text-gray-900">A minha conta</h1>
+        <p className="text-sm text-gray-400 mt-1">Os teus dados de acesso.</p>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-6 flex flex-col gap-4">
-        <Input
-          label="Nome"
-          value={form.name}
-          onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-          placeholder="O teu nome"
+        <Field label="Nome" value={name} />
+        <Field label="Email" value={email} />
+        <Field
+          label="Email verificado"
+          value={profile?.email_verified ? 'Sim' : 'Não'}
         />
-        <Input
-          label="Email"
-          type="email"
-          value={form.email}
-          onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-          placeholder="o-teu-email@exemplo.com"
-        />
-        <Input
-          label="Nova password (deixa vazio para manter)"
-          type="password"
-          value={form.password}
-          onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-          placeholder="••••••••"
-        />
-        <div className="flex justify-end pt-2">
-          <Button variant="primary" onClick={handleSave} disabled={saving}>
-            {saving ? 'A guardar…' : 'Guardar alterações'}
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 p-6 flex flex-col gap-3">
+        <p className="text-sm text-gray-700">
+          Alterar o nome, o email ou a password, ativar verificação em dois
+          passos e terminar sessões noutros dispositivos faz-se na tua conta.
+        </p>
+        <div>
+          <Button
+            variant="primary"
+            onClick={() => window.open(accountConsoleUrl, '_blank', 'noopener')}
+          >
+            Gerir a minha conta
           </Button>
         </div>
       </div>

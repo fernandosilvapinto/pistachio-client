@@ -2,9 +2,14 @@ import { Outlet } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import Button from '../ui/Button';
 import branding from '../../config/branding';
+import { useAuth } from '../../context/AuthContext';
 
 const PublicLayout = () => {
   const navigate = useNavigate();
+  // Entrar e registar acontecem no Keeper, com a identidade visual desta marca
+  // aplicada por tema. Esta aplicação nunca vê uma password, e por isso nunca
+  // pode perder uma.
+  const { isAuthenticated, signIn, signUp } = useAuth();
 
   return (
     <div className="min-h-screen bg-white">
@@ -22,12 +27,20 @@ const PublicLayout = () => {
             <span className="text-sm font-semibold text-gray-900">{branding.name}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" onClick={() => navigate('/login')}>
-              Entrar
-            </Button>
-            <Button variant="primary" onClick={() => navigate('/register')}>
-              Registar
-            </Button>
+            {isAuthenticated ? (
+              <Button variant="primary" onClick={() => navigate('/dashboard')}>
+                A minha conta
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" onClick={() => signIn('/dashboard')}>
+                  Entrar
+                </Button>
+                <Button variant="primary" onClick={() => signUp('/dashboard')}>
+                  Criar conta
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>

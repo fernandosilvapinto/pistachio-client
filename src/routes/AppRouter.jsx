@@ -4,16 +4,13 @@ import PrivateRoute from './PrivateRoute';
 import PublicLayout from '../components/layout/PublicLayout';
 import ClientLayout from '../components/layout/ClientLayout';
 import Welcome from '../pages/Welcome';
-import Login from '../pages/Login';
-import ForgotPassword from '../pages/ForgotPassword';
-import ResetPassword from '../pages/ResetPassword';
+import Book from '../pages/Book';
+import Callback from '../pages/Callback';
 import Dashboard from '../pages/Dashboard';
 import Profile from '../pages/Profile';
 import SchedulingList from '../pages/schedulings/SchedulingList';
 import NewScheduling from '../pages/schedulings/NewScheduling';
 import NotFound from '../pages/NotFound';
-import Register from '../pages/Register';
-import Book from '../pages/Book';
 
 const AppRouter = () => {
   const { isAuthenticated } = useAuth();
@@ -22,28 +19,25 @@ const AppRouter = () => {
     <BrowserRouter>
       <Routes>
 
-        {/* Rotas públicas */}
+        {/* Públicas. Marcar não exige conta — é aqui que o negócio acontece. */}
         <Route element={<PublicLayout />}>
           <Route path="/welcome" element={<Welcome />} />
-          <Route path="/register" element={<Register />} />
           <Route path="/book" element={<Book />} />
         </Route>
 
-        {/* Login */}
-        <Route
-          path="/login"
-          element={isAuthenticated ? <Navigate to="/" replace /> : <Login />}
-        />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
+        {/* O regresso do Keeper, depois de entrar ou de se registar. */}
+        <Route path="/callback" element={<Callback />} />
 
-        {/* Raiz — redireciona conforme estado */}
         <Route
           path="/"
-          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/welcome" replace />}
+          element={
+            isAuthenticated
+              ? <Navigate to="/dashboard" replace />
+              : <Navigate to="/welcome" replace />
+          }
         />
 
-        {/* Rotas privadas */}
+        {/* De conta. Estas sim precisam de saber quem é a pessoa. */}
         <Route
           path="/"
           element={

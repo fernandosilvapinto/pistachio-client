@@ -8,7 +8,7 @@ const NAV = [
 ];
 
 const Navbar = () => {
-  const { user, logout } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -23,12 +23,12 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/welcome');
-  };
+  // Sair termina a sessão no Keeper, não só aqui. Limpar o estado local
+  // deixaria a sessão do provider viva, e o próximo "Entrar" entraria em
+  // silêncio — que é o bug clássico do logout em SSO.
+  const handleLogout = () => signOut();
 
-  const displayName = user?.name || user?.email || 'Conta';
+  const displayName = user?.name || profile?.name || user?.email || profile?.email || 'Conta';
   const initial = displayName.charAt(0).toUpperCase();
 
   return (
