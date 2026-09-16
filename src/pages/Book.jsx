@@ -111,9 +111,10 @@ const Book = () => {
           onChange={e => setForm(f => ({ ...f, scheduledDate: e.target.value }))}
         />
         {error && <p className="text-xs text-red-500">{error}</p>}
-        <Button variant="primary" onClick={handleSubmit} disabled={loading} className="w-full justify-center mt-1">
+        {/* <Button variant="primary" onClick={handleSubmit} disabled={loading} className="w-full justify-center mt-1">
           {loading ? 'A agendar…' : 'Confirmar agendamento'}
-        </Button>
+        </Button> */}
+        <p className="text-sm text-gray-400 mt-1">Opção temporariamente indisponível.</p>
       </div>
 
       <p className="text-center text-sm text-gray-400">

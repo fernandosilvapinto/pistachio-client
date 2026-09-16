@@ -36,9 +36,9 @@ const PublicLayout = () => {
                 <Button variant="ghost" onClick={() => signIn('/dashboard')}>
                   Entrar
                 </Button>
-                <Button variant="primary" onClick={() => signUp('/dashboard')}>
+                {/* <Button variant="primary" onClick={() => signUp('/dashboard')}>
                   Criar conta
-                </Button>
+                </Button> */}
               </>
             )}
           </div>
