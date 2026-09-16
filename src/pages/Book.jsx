@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
 import Button from '../components/ui/Button';
@@ -8,6 +9,7 @@ import Button from '../components/ui/Button';
 const Book = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { signIn } = useAuth();
 
   const [services, setServices] = useState([]);
   const [form, setForm] = useState({
@@ -62,7 +64,7 @@ const Book = () => {
           </p>
         ) : (
           <p className="text-sm text-gray-500">
-            Já tens conta connosco — <button onClick={() => navigate('/login')} className="text-gray-900 font-medium hover:underline cursor-pointer">inicia sessão</button> para veres os detalhes.
+            Já tens conta connosco — <button onClick={() => signIn('/dashboard')} className="text-gray-900 font-medium hover:underline cursor-pointer">inicia sessão</button> para veres os detalhes.
           </p>
         )}
         <Button variant="primary" onClick={() => navigate('/welcome')} className="mt-4 mx-auto">
@@ -119,7 +121,7 @@ const Book = () => {
 
       <p className="text-center text-sm text-gray-400">
         Já tens conta?{' '}
-        <button onClick={() => navigate('/login')} className="text-gray-900 font-medium hover:underline cursor-pointer">
+        <button onClick={() => signIn('/dashboard')} className="text-gray-900 font-medium hover:underline cursor-pointer">
           Entra para agendar mais rápido
         </button>
       </p>

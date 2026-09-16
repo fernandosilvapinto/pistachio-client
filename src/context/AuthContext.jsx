@@ -9,7 +9,7 @@ export const AuthProvider = ({ children }) => {
   // Ao contrário das aplicações internas, aqui `anonymous` é um estado normal e
   // permanente: quem chega a este site não tem conta, e a maior parte do que
   // interessa — ver serviços, marcar como convidado — funciona sem ela. Nada
-  // nesta camada empurra ninguém para o Keeper; só o PrivateRoute o faz, e só
+  // nesta camada empurra ninguém para o Anvil; só o PrivateRoute o faz, e só
   // nas páginas que precisam.
   const [status, setStatus] = useState('loading');
   const [profile, setProfile] = useState(null);

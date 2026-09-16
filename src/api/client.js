@@ -25,7 +25,7 @@ const request = async (path, options = {}) => {
 
   const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
 
-  // 401 só justifica mandar a pessoa ao Keeper se ela julgava ter sessão. Num
+  // 401 só justifica mandar a pessoa ao Anvil se ela julgava ter sessão. Num
   // ecrã público é simplesmente a resposta a um pedido que precisava de conta.
   if (response.status === 401) {
     if (user) {

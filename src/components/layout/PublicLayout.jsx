@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 
 const PublicLayout = () => {
   const navigate = useNavigate();
-  // Entrar e registar acontecem no Keeper, com a identidade visual desta marca
+  // Entrar e registar acontecem no Anvil, com a identidade visual desta marca
   // aplicada por tema. Esta aplicação nunca vê uma password, e por isso nunca
   // pode perder uma.
   const { isAuthenticated, signIn, signUp } = useAuth();

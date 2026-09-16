@@ -1,11 +1,11 @@
 import { UserManager, WebStorageStateStore, InMemoryWebStorage } from 'oidc-client-ts';
 
-const authority = import.meta.env.VITE_KEEPER_AUTHORITY;
-const clientId = import.meta.env.VITE_KEEPER_CLIENT_ID;
+const authority = import.meta.env.VITE_ANVIL_AUTHORITY;
+const clientId = import.meta.env.VITE_ANVIL_CLIENT_ID;
 
 if (!authority || !clientId) {
   throw new Error(
-    'VITE_KEEPER_AUTHORITY e VITE_KEEPER_CLIENT_ID têm de estar definidos. Copia .env.example para .env.',
+    'VITE_ANVIL_AUTHORITY e VITE_ANVIL_CLIENT_ID têm de estar definidos. Copia .env.example para .env.',
   );
 }
 
@@ -20,7 +20,7 @@ if (!window.crypto?.subtle) {
 /**
  * O cliente de consumidor fala com o realm `customers`, não com o `workforce`.
  *
- * É o mesmo Keeper e o mesmo protocolo, mas outra população: registo aberto,
+ * É o mesmo Anvil e o mesmo protocolo, mas outra população: registo aberto,
  * email verificado à entrada, sessões longas. E, sobretudo, outra fronteira —
  * uma sessão aqui nunca se transforma numa sessão do lado interno, por mais
  * que alguém a peça.
@@ -44,7 +44,7 @@ export const userManager = new UserManager({
   monitorSession: false,
 });
 
-/** O ecrã de conta do Keeper: password, email, sessões, dispositivos. */
+/** O ecrã de conta do Anvil: password, email, sessões, dispositivos. */
 export const accountConsoleUrl = `${authority.replace(/\/$/, '')}/account`;
 
 // signoutRedirect() remove o utilizador do armazenamento ANTES de navegar, e

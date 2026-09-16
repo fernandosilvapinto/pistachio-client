@@ -25,7 +25,7 @@ const AppRouter = () => {
           <Route path="/book" element={<Book />} />
         </Route>
 
-        {/* O regresso do Keeper, depois de entrar ou de se registar. */}
+        {/* O regresso do Anvil, depois de entrar ou de se registar. */}
         <Route path="/callback" element={<Callback />} />
 
         <Route
