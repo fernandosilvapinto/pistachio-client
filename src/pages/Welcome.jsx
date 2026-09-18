@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 import Button from '../components/ui/Button';
 import branding from '../config/branding';
 
-const fmtEur = (n) => `€${Number(n ?? 0).toFixed(2)}`;
+import { fmtEuros } from '../lib/format';
 
 const Welcome = () => {
   const navigate = useNavigate();
+  const { register } = useAuth();
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -39,7 +41,7 @@ const Welcome = () => {
           <div className="flex gap-3 pt-2">
             <Button
               variant="primary"
-              onClick={() => navigate('/register')}
+              onClick={() => register('/dashboard')}
               className="px-6 py-3 text-base"
             >
               Criar conta gratuita
@@ -86,7 +88,7 @@ const Welcome = () => {
                     )}
                   </div>
                   <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-100">
-                    <p className="text-lg font-semibold text-gray-900">{fmtEur(s.price)}</p>
+                    <p className="text-lg font-semibold text-gray-900">{fmtEuros(s.price)}</p>
                     <Button
                       size="sm"
                       variant="primary"

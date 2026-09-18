@@ -1,138 +1,128 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../api/client';
 import { useAuth } from '../context/AuthContext';
-import Input from '../components/ui/Input';
-import Select from '../components/ui/Select';
 import Button from '../components/ui/Button';
+import SlotPicker from '../components/booking/SlotPicker';
+import { fmtEuros, fmtDuracao, fmtDataHora } from '../lib/format';
 
+/**
+ * Marcação a partir do site público.
+ *
+ * A escolha de dia e hora é a mesma de quem tem sessão — quem chega de fora vê
+ * a agenda real antes de decidir criar conta. A conta só é pedida no fim, e a
+ * hora escolhida viaja com a pessoa até ao regresso do Anvil.
+ *
+ * Marcar sem conta nenhuma fica para quando o endpoint de convidado tiver
+ * limitação de pedidos: sem isso, é uma máquina de criar contas à solta na
+ * internet.
+ */
 const Book = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn } = useAuth();
+  const { isAuthenticated, signIn, register } = useAuth();
 
-  const [services, setServices] = useState([]);
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    serviceId: location.state?.serviceId ? String(location.state.serviceId) : '',
-    scheduledDate: '',
-  });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null); // { isNewAccount }
+  const [servicos, setServicos] = useState([]);
+  const [servicoId, setServicoId] = useState(
+    location.state?.serviceId ? Number(location.state.serviceId) : null,
+  );
+  const [slot, setSlot] = useState(null);
 
   useEffect(() => {
-    const load = async () => {
-      const s = await api.get('/services').catch(() => []);
-      setServices(Array.isArray(s) ? s.filter(s => s.isActive) : []);
-    };
-    load();
+    api.get('/services')
+      .then((lista) => setServicos((Array.isArray(lista) ? lista : []).filter((s) => s.isActive)))
+      .catch(() => setServicos([]));
   }, []);
 
-  const handleSubmit = async () => {
-    if (!form.name)          { setError('O nome é obrigatório.');      return; }
-    if (!form.email)         { setError('O email é obrigatório.');     return; }
-    if (!form.serviceId)     { setError('Seleciona um serviço.');      return; }
-    if (!form.scheduledDate) { setError('Escolhe uma data e hora.');   return; }
+  const servico = servicos.find((s) => s.id === servicoId);
 
-    setLoading(true); setError('');
-    try {
-      const data = await api.post('/schedulings/guest', {
-        name:          form.name,
-        email:         form.email,
-        serviceId:     parseInt(form.serviceId),
-        scheduledDate: new Date(form.scheduledDate).toISOString(),
-      });
-      setResult(data);
-    } catch (e) {
-      setError(e.message ?? 'Erro ao criar agendamento.');
-    } finally {
-      setLoading(false);
+  // A escolha viaja no estado do pedido de autenticação e é retomada do outro
+  // lado, para que ninguém tenha de repetir o que já escolheu.
+  const continuar = (accao) => {
+    const destino = servicoId
+      ? `/schedulings/new?serviceId=${servicoId}${slot ? `&startsAt=${encodeURIComponent(slot.startsAt)}` : ''}`
+      : '/schedulings/new';
+
+    if (isAuthenticated) {
+      navigate(destino);
+      return;
     }
+
+    accao(destino);
   };
 
-  if (result) {
-    return (
-      <div className="max-w-md mx-auto px-6 py-24 flex flex-col gap-4 text-center">
-        <div className="text-4xl">✅</div>
-        <h1 className="text-2xl font-semibold text-gray-900">Agendamento confirmado!</h1>
-        {result.isNewAccount ? (
-          <p className="text-sm text-gray-500">
-            Enviámos um email para <strong>{form.email}</strong> para definires uma password
-            e acompanhares o teu agendamento.
-          </p>
-        ) : (
-          <p className="text-sm text-gray-500">
-            Já tens conta connosco — <button onClick={() => signIn('/dashboard')} className="text-gray-900 font-medium hover:underline cursor-pointer">inicia sessão</button> para veres os detalhes.
-          </p>
-        )}
-        <Button variant="primary" onClick={() => navigate('/welcome')} className="mt-4 mx-auto">
-          Voltar ao início
-        </Button>
-      </div>
-    );
-  }
-
   return (
-    <div className="max-w-md mx-auto px-6 py-16 flex flex-col gap-6">
+    <div className="max-w-2xl mx-auto px-4 py-10 flex flex-col gap-6">
 
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Marca a tua revisão</h1>
-        <p className="text-sm text-gray-400 mt-1">Sem precisares de criar conta primeiro.</p>
+        <h1 className="text-2xl font-semibold text-gray-900">Marcar</h1>
+        <p className="text-sm text-gray-400 mt-1">Escolhe o serviço e vê as horas livres.</p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6 flex flex-col gap-4">
-        <Input
-          label="Nome"
-          value={form.name}
-          onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-          placeholder="O teu nome"
-        />
-        <Input
-          label="Email"
-          type="email"
-          value={form.email}
-          onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-          placeholder="o-teu-email@exemplo.com"
-        />
-        <Select
-          label="Serviço"
-          value={form.serviceId}
-          onChange={e => setForm(f => ({ ...f, serviceId: e.target.value }))}
-        >
-          <option value="">— seleciona um serviço —</option>
-          {services.map(s => (
-            <option key={s.id} value={s.id}>{s.name} — €{Number(s.price).toFixed(2)}</option>
+      <section className="bg-white rounded-xl border border-gray-200 p-5 flex flex-col gap-3">
+        <p className="text-sm font-medium text-gray-700">Serviço</p>
+
+        <div className="flex flex-col gap-2">
+          {servicos.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => { setServicoId(s.id); setSlot(null); }}
+              className={`flex items-center justify-between gap-3 p-3 rounded-lg border text-left
+                transition-colors cursor-pointer
+                ${s.id === servicoId
+                  ? 'border-blue-300 bg-blue-50'
+                  : 'border-gray-200 bg-white hover:bg-gray-50'}`}
+            >
+              <span className="min-w-0">
+                <span className="block text-sm font-medium text-gray-900 truncate">{s.name}</span>
+                <span className="block text-xs text-gray-400">{fmtDuracao(s.durationMinutes)}</span>
+              </span>
+              <span className="text-sm font-semibold text-gray-900 shrink-0">{fmtEuros(s.price)}</span>
+            </button>
           ))}
-        </Select>
-        <Input
-          label="Data e hora"
-          type="datetime-local"
-          value={form.scheduledDate}
-          onChange={e => setForm(f => ({ ...f, scheduledDate: e.target.value }))}
-        />
-        {error && <p className="text-xs text-red-500">{error}</p>}
-        {/* <Button variant="primary" onClick={handleSubmit} disabled={loading} className="w-full justify-center mt-1">
-          {loading ? 'A agendar…' : 'Confirmar agendamento'}
-        </Button> */}
-        <p className="text-sm text-gray-400 mt-1">Opção temporariamente indisponível.</p>
-      </div>
 
-      <p className="text-center text-sm text-gray-400">
-        Já tens conta?{' '}
-        <button onClick={() => signIn('/dashboard')} className="text-gray-900 font-medium hover:underline cursor-pointer">
-          Entra para agendar mais rápido
-        </button>
-      </p>
+          {servicos.length === 0 && (
+            <p className="text-sm text-gray-400">Não há serviços disponíveis de momento.</p>
+          )}
+        </div>
+      </section>
+
+      {servicoId && (
+        <section className="bg-white rounded-xl border border-gray-200 p-5">
+          <SlotPicker serviceId={servicoId} value={slot?.startsAt} onChange={setSlot} />
+        </section>
+      )}
+
+      {slot && servico && (
+        <section className="bg-white rounded-xl border border-gray-200 p-5 flex flex-col gap-4">
+          <div>
+            <p className="text-sm font-medium text-gray-700">A tua escolha</p>
+            <p className="text-sm text-gray-900 mt-2">{servico.name}</p>
+            <p className="text-sm text-gray-500">{fmtDataHora(slot.startsAt)}</p>
+          </div>
+
+          <p className="text-xs text-gray-400">
+            Falta só a conta, para te podermos avisar de qualquer alteração e para
+            poderes cancelar ou reagendar sozinho.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
+            <Button onClick={() => continuar(signIn)}>Já tenho conta</Button>
+            <Button variant="primary" onClick={() => continuar(register)}>
+              Criar conta e marcar
+            </Button>
+          </div>
+        </section>
+      )}
 
       <button
+        type="button"
         onClick={() => navigate('/welcome')}
         className="text-center text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
       >
         ← Voltar ao início
       </button>
-
     </div>
   );
 };

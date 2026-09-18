@@ -4,8 +4,9 @@ import { api } from '../api/client';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import SchedulingCard from '../components/ui/SchedulingCard';
+import { fmtEuros, fmtDuracao } from '../lib/format';
 
-const fmtEur = (n) => `€${Number(n ?? 0).toFixed(2)}`;
+
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -22,8 +23,8 @@ const Dashboard = () => {
       ]);
 
       const upcoming = (Array.isArray(s) ? s : [])
-        .filter(x => x.scheduledDate && new Date(x.scheduledDate) >= new Date())
-        .sort((a, b) => new Date(a.scheduledDate) - new Date(b.scheduledDate))
+        .filter(x => x.startsAt && new Date(x.startsAt) >= new Date() && x.status !== 'Cancelled')
+        .sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt))
         .slice(0, 3);
 
       setSchedulings(upcoming);
@@ -37,7 +38,7 @@ const Dashboard = () => {
     <div className="flex flex-col gap-8">
 
       {/* Cabeçalho */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">Início</h1>
           <p className="text-sm text-gray-400 mt-1">
@@ -45,14 +46,14 @@ const Dashboard = () => {
           </p>
         </div>
         <Button variant="primary" onClick={() => navigate('/schedulings/new')}>
-          + Novo agendamento
+          Nova marcação
         </Button>
       </div>
 
-      {/* Próximos agendamentos */}
+      {/* Próximas marcações */}
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-medium text-gray-700">Próximos agendamentos</h2>
+          <h2 className="text-sm font-medium text-gray-700">Próximas marcações</h2>
           <button
             onClick={() => navigate('/schedulings')}
             className="text-xs text-blue-600 hover:underline cursor-pointer"
@@ -66,12 +67,12 @@ const Dashboard = () => {
           : schedulings.length === 0
             ? (
               <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-                <p className="text-sm text-gray-400">Sem agendamentos marcados.</p>
+                <p className="text-sm text-gray-400">Ainda não tens marcações.</p>
                 <button
                   onClick={() => navigate('/schedulings/new')}
                   className="text-sm text-blue-600 hover:underline mt-2 cursor-pointer"
                 >
-                  Criar um agendamento
+                  Marcar agora
                 </button>
               </div>
             )
@@ -100,15 +101,16 @@ const Dashboard = () => {
                     {s.description && (
                       <p className="text-xs text-gray-400 mt-1">{s.description}</p>
                     )}
+                    <p className="text-xs text-gray-400 mt-1">{fmtDuracao(s.durationMinutes)}</p>
                   </div>
                   <div className="flex items-center justify-between">
-                    <p className="text-lg font-semibold text-gray-900">{fmtEur(s.price)}</p>
+                    <p className="text-lg font-semibold text-gray-900">{fmtEuros(s.price)}</p>
                     <Button
                       variant="primary"
                       size="sm"
                       onClick={() => navigate('/schedulings/new', { state: { serviceId: s.id, serviceName: s.name } })}
                     >
-                      Agendar
+                      Marcar
                     </Button>
                   </div>
                 </div>

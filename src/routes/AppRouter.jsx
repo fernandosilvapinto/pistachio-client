@@ -10,6 +10,7 @@ import Dashboard from '../pages/Dashboard';
 import Profile from '../pages/Profile';
 import SchedulingList from '../pages/schedulings/SchedulingList';
 import NewScheduling from '../pages/schedulings/NewScheduling';
+import RescheduleScheduling from '../pages/schedulings/RescheduleScheduling';
 import NotFound from '../pages/NotFound';
 
 const AppRouter = () => {
@@ -50,6 +51,7 @@ const AppRouter = () => {
           <Route path="profile" element={<Profile />} />
           <Route path="schedulings" element={<SchedulingList />} />
           <Route path="schedulings/new" element={<NewScheduling />} />
+          <Route path="schedulings/:id/reschedule" element={<RescheduleScheduling />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />

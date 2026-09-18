@@ -80,14 +80,14 @@ export const AuthProvider = ({ children }) => {
   // início de sessão. É um parâmetro da especificação, não um truque do
   // Keycloak, e evita ter aqui um formulário de registo — ou seja, evita que
   // esta aplicação alguma vez veja uma password.
-  // const signUp = useCallback(
-  //   (returnTo) =>
-  //     userManager.signinRedirect({
-  //       prompt: 'create',
-  //       state: { returnTo: returnTo ?? '/dashboard' },
-  //     }),
-  //   [],
-  // );
+  const register = useCallback(
+    (returnTo) =>
+      userManager.signinRedirect({
+        prompt: 'create',
+        state: { returnTo: returnTo ?? '/dashboard' },
+      }),
+    [],
+  );
 
   const signOut = useCallback(() => signOutRedirect(), []);
 
@@ -100,6 +100,7 @@ export const AuthProvider = ({ children }) => {
         profile,
         user,
         signIn,
+        register,
         signOut,
       }}
     >

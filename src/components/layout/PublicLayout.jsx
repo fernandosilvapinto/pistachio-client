@@ -9,7 +9,7 @@ const PublicLayout = () => {
   // Entrar e registar acontecem no Anvil, com a identidade visual desta marca
   // aplicada por tema. Esta aplicação nunca vê uma password, e por isso nunca
   // pode perder uma.
-  const { isAuthenticated, signIn, signUp } = useAuth();
+  const { isAuthenticated, signIn, register } = useAuth();
 
   return (
     <div className="min-h-screen bg-white">
@@ -36,9 +36,9 @@ const PublicLayout = () => {
                 <Button variant="ghost" onClick={() => signIn('/dashboard')}>
                   Entrar
                 </Button>
-                {/* <Button variant="primary" onClick={() => signUp('/dashboard')}>
+                <Button variant="primary" onClick={() => register('/dashboard')}>
                   Criar conta
-                </Button> */}
+                </Button>
               </>
             )}
           </div>
