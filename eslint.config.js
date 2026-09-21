@@ -17,5 +17,11 @@ export default defineConfig([
       globals: globals.browser,
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
+    rules: {
+      // Apanha em build/lint o mesmo erro que só apareceu em runtime no
+      // Book.jsx: uma const referenciada (ex.: num array de deps de um
+      // useEffect) antes da sua própria declaração no mesmo scope.
+      'no-use-before-define': ['error', { variables: true, functions: false, classes: false }],
+    },
   },
 ])

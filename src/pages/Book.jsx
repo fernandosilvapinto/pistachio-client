@@ -1,32 +1,48 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { api } from '../api/client';
-import { useAuth } from '../context/AuthContext';
+// Fixado em 2.x de propósito: a partir da 3.0 o protocolo de prova de
+// trabalho mudou por completo (deixa de ser sal+número com SHA-256 e passa a
+// derivação de chave com prefixo-alvo) — incompatível com o que o backend
+// implementa. Nunca atualizar sem trocar os dois lados ao mesmo tempo.
+import 'altcha';
+import { api, ApiError, API_BASE } from '../api/client';
 import Button from '../components/ui/Button';
+import Input from '../components/ui/Input';
 import SlotPicker from '../components/booking/SlotPicker';
 import { fmtEuros, fmtDuracao, fmtDataHora } from '../lib/format';
 
 /**
  * Marcação a partir do site público.
  *
- * A escolha de dia e hora é a mesma de quem tem sessão — quem chega de fora vê
- * a agenda real antes de decidir criar conta. A conta só é pedida no fim, e a
- * hora escolhida viaja com a pessoa até ao regresso do Anvil.
- *
- * Marcar sem conta nenhuma fica para quando o endpoint de convidado tiver
- * limitação de pedidos: sem isso, é uma máquina de criar contas à solta na
- * internet.
+ * Não pede conta nenhuma: nome, email e telefone chegam para marcar. O email
+ * identifica a pessoa — uma segunda marcação com o mesmo email junta-se ao
+ * mesmo histórico do lado do negócio, sem a pessoa ter de fazer nada por
+ * isso. A confirmação e o link para cancelar ou reagendar vão por email.
  */
 const Book = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, signIn, register } = useAuth();
 
   const [servicos, setServicos] = useState([]);
   const [servicoId, setServicoId] = useState(
     location.state?.serviceId ? Number(location.state.serviceId) : null,
   );
   const [slot, setSlot] = useState(null);
+
+  const [contacto, setContacto] = useState({ nome: '', email: '', telefone: '' });
+  // Armadilha para bots: escondida de gente por CSS, visível para quem só lê
+  // o HTML e preenche tudo o que encontra. Uma pessoa nunca a vê nem a toca.
+  const [website, setWebsite] = useState('');
+  const [erro, setErro] = useState('');
+  const [aMarcar, setAMarcar] = useState(false);
+  const [confirmada, setConfirmada] = useState(null);
+
+  // Prova de que quem está do outro lado é uma pessoa, resolvida em segundo
+  // plano no browser — sem imagens para acertar, na maioria das vezes sem a
+  // pessoa reparar que aconteceu.
+  const altchaRef = useRef(null);
+  const [altchaPayload, setAltchaPayload] = useState(null);
+  const [altchaPronto, setAltchaPronto] = useState(false);
 
   useEffect(() => {
     api.get('/services')
@@ -36,20 +52,75 @@ const Book = () => {
 
   const servico = servicos.find((s) => s.id === servicoId);
 
-  // A escolha viaja no estado do pedido de autenticação e é retomada do outro
-  // lado, para que ninguém tenha de repetir o que já escolheu.
-  const continuar = (accao) => {
-    const destino = servicoId
-      ? `/schedulings/new?serviceId=${servicoId}${slot ? `&startsAt=${encodeURIComponent(slot.startsAt)}` : ''}`
-      : '/schedulings/new';
+  useEffect(() => {
+    const widget = altchaRef.current;
+    if (!widget) return undefined;
 
-    if (isAuthenticated) {
-      navigate(destino);
+    const aoMudarEstado = (e) => {
+      const { state, payload } = e.detail;
+      setAltchaPronto(state === 'verified');
+      setAltchaPayload(state === 'verified' ? payload : null);
+    };
+
+    widget.addEventListener('statechange', aoMudarEstado);
+    return () => widget.removeEventListener('statechange', aoMudarEstado);
+  }, [slot, servico]);
+
+  const marcar = async (e) => {
+    e.preventDefault();
+    setErro('');
+
+    if (!contacto.nome.trim() || !contacto.email.trim()) {
+      setErro('Nome e email são obrigatórios.');
       return;
     }
 
-    accao(destino);
+    if (!altchaPronto) {
+      setErro('Aguarda só mais um instante — a confirmar que não és um robô.');
+      return;
+    }
+
+    setAMarcar(true);
+
+    try {
+      const criada = await api.post('/schedulings', {
+        serviceId: servicoId,
+        startsAt: slot.startsAt,
+        customerName: contacto.nome.trim(),
+        customerEmail: contacto.email.trim(),
+        customerPhone: contacto.telefone.trim() || null,
+        website,
+        altcha: altchaPayload,
+      });
+
+      setConfirmada(criada);
+    } catch (e) {
+      setErro(e instanceof ApiError ? e.message : 'Não foi possível marcar. Tenta outra vez.');
+    } finally {
+      setAMarcar(false);
+    }
   };
+
+  if (confirmada) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-16 flex flex-col items-center text-center gap-4">
+        <div className="w-14 h-14 rounded-full bg-green-50 text-green-600 flex items-center justify-center text-2xl">
+          ✓
+        </div>
+        <h1 className="text-2xl font-semibold text-gray-900">Marcação confirmada</h1>
+        <p className="text-sm text-gray-500 max-w-sm">
+          {confirmada.serviceName} — {fmtDataHora(confirmada.startsAt)}
+        </p>
+        <p className="text-sm text-gray-400 max-w-sm">
+          Enviámos os detalhes para <strong>{contacto.email}</strong>, com um link
+          para cancelares ou reagendares, se precisares.
+        </p>
+        <Button variant="primary" onClick={() => navigate('/welcome')} className="mt-2">
+          Voltar ao início
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10 flex flex-col gap-6">
@@ -102,17 +173,63 @@ const Book = () => {
             <p className="text-sm text-gray-500">{fmtDataHora(slot.startsAt)}</p>
           </div>
 
-          <p className="text-xs text-gray-400">
-            Falta só a conta, para te podermos avisar de qualquer alteração e para
-            poderes cancelar ou reagendar sozinho.
-          </p>
+          <form onSubmit={marcar} className="flex flex-col gap-3">
+            <p className="text-xs text-gray-400">
+              Só para te avisarmos e para poderes cancelar ou reagendar sozinho — sem conta, sem password.
+            </p>
 
-          <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
-            <Button onClick={() => continuar(signIn)}>Já tenho conta</Button>
-            <Button variant="primary" onClick={() => continuar(register)}>
-              Criar conta e marcar
-            </Button>
-          </div>
+            <Input
+              label="Nome"
+              value={contacto.nome}
+              onChange={(e) => setContacto((c) => ({ ...c, nome: e.target.value }))}
+              required
+            />
+            <Input
+              label="Email"
+              type="email"
+              value={contacto.email}
+              onChange={(e) => setContacto((c) => ({ ...c, email: e.target.value }))}
+              required
+            />
+            <Input
+              label="Telefone (opcional)"
+              type="tel"
+              value={contacto.telefone}
+              onChange={(e) => setContacto((c) => ({ ...c, telefone: e.target.value }))}
+            />
+
+            {/* Armadilha para bots — invisível e inalcançável para uma pessoa:
+                fora do ecrã, sem tab, sem preenchimento automático, e um rótulo
+                que um leitor de ecrã também ignora. */}
+            <div aria-hidden="true" className="absolute -left-[9999px] w-px h-px overflow-hidden">
+              <label htmlFor="website">Não preencher</label>
+              <input
+                type="text"
+                id="website"
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+              />
+            </div>
+
+            <altcha-widget
+              ref={altchaRef}
+              challengeurl={`${API_BASE}/anti-bot/challenge`}
+              hidefooter
+              hidelogo
+              style={{ '--altcha-max-width': '100%' }}
+            />
+
+            {erro && <p className="text-xs text-red-500">{erro}</p>}
+
+            <div className="flex justify-end pt-1">
+              <Button type="submit" variant="primary" disabled={aMarcar || !altchaPronto}>
+                {aMarcar ? 'A marcar…' : 'Confirmar marcação'}
+              </Button>
+            </div>
+          </form>
         </section>
       )}
 

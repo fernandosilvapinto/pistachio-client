@@ -1,6 +1,4 @@
-import { userManager } from '../auth/userManager';
-
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:5000/api';
+export const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:5000/api';
 
 export class ApiError extends Error {
   constructor(status, message) {
@@ -10,35 +8,16 @@ export class ApiError extends Error {
   }
 }
 
+// Esta aplicação é inteiramente anónima: ninguém aqui tem sessão. Marcar,
+// ver o catálogo e gerir a própria marcação (pela chave que vem no email)
+// não passam por token nenhum.
 const request = async (path, options = {}) => {
-  // Boa parte desta aplicação é anónima de propósito: o catálogo e a marcação
-  // como convidado não exigem sessão nenhuma. Por isso o token é opcional —
-  // envia-se quando existe, e o pedido segue à mesma quando não existe.
-  const user = await userManager.getUser();
-  const token = user && !user.expired ? user.access_token : null;
-
   const headers = {
     'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...options.headers,
   };
 
   const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
-
-  // 401 só justifica mandar a pessoa ao Anvil se ela julgava ter sessão. Num
-  // ecrã público é simplesmente a resposta a um pedido que precisava de conta.
-  if (response.status === 401) {
-    if (user) {
-      await userManager.signinRedirect({
-        state: { returnTo: window.location.pathname + window.location.search },
-      });
-    }
-    throw new ApiError(401, 'É preciso iniciar sessão.');
-  }
-
-  if (response.status === 403) {
-    throw new ApiError(403, 'Não tens permissão para esta operação.');
-  }
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));

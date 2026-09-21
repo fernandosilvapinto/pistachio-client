@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 import Button from '../components/ui/Button';
 import branding from '../config/branding';
@@ -9,7 +8,6 @@ import { fmtEuros } from '../lib/format';
 
 const Welcome = () => {
   const navigate = useNavigate();
-  const { register } = useAuth();
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,19 +39,13 @@ const Welcome = () => {
           <div className="flex gap-3 pt-2">
             <Button
               variant="primary"
-              onClick={() => register('/dashboard')}
-              className="px-6 py-3 text-base"
-            >
-              Criar conta gratuita
-            </Button>
-            <button
               onClick={() => {
                 document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="text-sm text-gray-400 hover:text-white transition-colors cursor-pointer px-4"
+              className="px-6 py-3 text-base"
             >
-              Ver serviços ↓
-            </button>
+              Marcar agora
+            </Button>
           </div>
         </div>
       </section>

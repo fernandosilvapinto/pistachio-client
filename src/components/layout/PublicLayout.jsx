@@ -1,20 +1,14 @@
-import { Outlet } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
-import Button from '../ui/Button';
+import { Outlet, useNavigate } from 'react-router-dom';
 import branding from '../../config/branding';
-import { useAuth } from '../../context/AuthContext';
 
+// Sem conta, não há nada para pôr no cabeçalho a não ser a marca. Quem
+// precisa de gerir uma marcação já tem o link no email.
 const PublicLayout = () => {
   const navigate = useNavigate();
-  // Entrar e registar acontecem no Anvil, com a identidade visual desta marca
-  // aplicada por tema. Esta aplicação nunca vê uma password, e por isso nunca
-  // pode perder uma.
-  const { isAuthenticated, signIn, register } = useAuth();
 
   return (
     <div className="min-h-screen bg-white">
 
-      {/* Header */}
       <header className="border-b border-gray-100 sticky top-0 bg-white z-10">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <div
@@ -26,28 +20,11 @@ const PublicLayout = () => {
             </div>
             <span className="text-sm font-semibold text-gray-900">{branding.name}</span>
           </div>
-          <div className="flex items-center gap-2">
-            {isAuthenticated ? (
-              <Button variant="primary" onClick={() => navigate('/dashboard')}>
-                A minha conta
-              </Button>
-            ) : (
-              <>
-                <Button variant="ghost" onClick={() => signIn('/dashboard')}>
-                  Entrar
-                </Button>
-                <Button variant="primary" onClick={() => register('/dashboard')}>
-                  Criar conta
-                </Button>
-              </>
-            )}
-          </div>
         </div>
       </header>
 
       <Outlet />
 
-      {/* Footer */}
       <footer className="border-t border-gray-100 mt-24">
         <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
